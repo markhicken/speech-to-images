@@ -6,6 +6,8 @@ Words are checked against the dictionary.com API for type (noun, verb, adjective
 
 It's still pretty rough. Only tested in Chrome.
 
+![speechToImages.gif](https://bitbucket.org/repo/L4MoA9/images/3608316079-speechToImages.gif)
+
 
 # Instructions... #
 
@@ -20,7 +22,3 @@ npm start
 * Visit [http://localhost:8080/](http://localhost:8080/) in your browser
 * Click the microphone to start capturing speech
 * Play or speak to start loading images
-
-
-
-![speechToImages.gif](https://bitbucket.org/repo/L4MoA9/images/3608316079-speechToImages.gif)
