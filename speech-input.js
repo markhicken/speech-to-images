@@ -6,6 +6,7 @@
 	if (! ('webkitSpeechRecognition' in window) ) return;
 
 	var config = {
+		longestBlurb: 3, // seconds
 		flickr: {
 			apiUrlYql: 'https://query.yahooapis.com/v1/public/yql',
 			apiUrl: 'http://www.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=7bab52281fa5a9a3d4be9857f0d0779a',
@@ -51,12 +52,23 @@
 		recognition.continuous = false;
 		recognition.interimResults = true;
 
+		function resetTimer(){
+			clearTimeout(timeout);
+			timeout = setTimeout(function(){
+				recognition.stop(); // will automatically restart if recognizing is still set to true
+			}, config.longestBlurb * 1000);
+		}
+
 		recognition.onstart = function() {
+			resetTimer();
 		};
 
 		recognition.onend = function() {
-			if(recognizing)
+			clearTimeout(timeout);
+			if(recognizing) {
 				recognition.start();
+				resetTimer();
+			}
 		};
 
 		recognition.onresult = function(event) {
@@ -72,18 +84,19 @@
 		micBtn.addEventListener('click', function(event) {
 			event.preventDefault();
 			if (recognizing) {
+				recognizing = false;
 				micBtn.classList.remove('listening');
 				if (oldPlaceholder !== null) inputEl.placeholder = oldPlaceholder;
-				recognizing = false;
+				clearTimeout(timeout);
 				recognition.stop();
 			}
 			else {
+				recognizing = true;
 				recognition.start();
 				inputEl.value = finalTranscript = '';
 				micBtn.classList.add('listening');
 				oldPlaceholder = inputEl.placeholder;
 				inputEl.placeholder = 'Start talking...';
-				recognizing = true;
 			}
 		}, false);
 	});
@@ -93,23 +106,31 @@
 
 	function lookupWords(words) {
 		if(words && words.length) {
-			$.get({
-				url: '/dictionary/' + encodeURIComponent(words),
-				success: function(data){
-					if(data){
-						data.forEach(function(word){
-							if(word.type=='noun') {
-								// console.log('searching for images for: ' + word.word);
-								doImageSearch(word.word);
+			if(words) { words = words.replace(/%20/ig, ',').replace(/\s/ig, ','); }
+		  var aWords = [words];
+		  if(words && words.indexOf(',')!=-1) { aWords = words.split(','); }
+
+			$(aWords).each(function(index, word){
+				if(word && word.length) {
+					$.get({
+						url: '/dictionary/' + encodeURIComponent(word),
+						success: function(data){
+							if(data){
+								data.forEach(function(word){
+									if(word.type=='noun') {
+										// console.log('searching for images for: ' + word.word);
+										doImageSearch(word.word);
+									}
+									else {
+										// console.log('ignoring word by type (' + word.type + '): ' + word.word);
+									}
+								});
 							}
 							else {
-								// console.log('ignoring word by type (' + word.type + '): ' + word.word);
+								console.log('no data for: ' + words);
 							}
-						});
-					}
-					else {
-						console.log('no data for: ' + words);
-					}
+						}
+					});
 				}
 			});
 		}
@@ -139,7 +160,7 @@
 			$template.find('.img').attr('src', buildFlickrImageUrl(result));
 			$('body').prepend($template);
 			$template.find('.img').load(function(){
-				$template.show(750);				
+				$template.show(750);
 			});
 		}
 		else {
