@@ -4,7 +4,7 @@ This is a node server/app that allows you to stream speech into images. It was a
 
 Words are checked against the dictionary.com API for type (noun, verb, adjective, etc). Noun images are loaded from the flickr API.
 
-Only tested in Chrome so far.
+Only tested in Chrome so far. It's still pretty rough.
 
 
 # Instructions... #
