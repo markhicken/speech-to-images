@@ -10,6 +10,8 @@
 	<link rel="stylesheet" href="speech-input.css">
 	<script src="bower_components/jquery/dist/jquery.js" integrity="sha256-4/zUCqiq0kqxhZIyp4G0Gk+AOtCJsY1TA00k5ClsZYE=" crossorigin="anonymous"></script>
 <body>
+  <img src="gears.svg" id="loading" class="hidden"/>
+
 	<div class="si-wrapper">
 		<div class="relative-pos">
 			<input type="text" class="si-input" placeholder="What's up?" />
@@ -20,7 +22,7 @@
 			</button>
 		</div>
 
-		<div class="imageTemplate hidden">
+		<div id="imageTemplate" class="imageTemplate hidden">
     	<div class="title"></div>
 			<img class="img" />
 		</div>

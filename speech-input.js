@@ -14,12 +14,18 @@
 		}
 	}
 
-	var talkMsg = 'start talking';
-	var patience = 30;
-
-	function capitalize(str) {
-		return str.length ? str[0].toUpperCase() + str.slice(1) : str;
-	}
+	var pendingAjaxRequests = 0;
+	$(document).ajaxStart(function() {
+		pendingAjaxRequests++;
+	  $('#loading').removeClass('hidden');
+	});
+	$(document).ajaxComplete(function() {
+		pendingAjaxRequests--;
+		if(pendingAjaxRequests<=0) {
+			pendingAjaxRequests = 0;
+			$('#loading').addClass('hidden');
+		}
+	});
 
 	var speechInputWrappers = document.getElementsByClassName('si-wrapper');
 
@@ -42,54 +48,43 @@
 		var recognizing = false;
 		var timeout;
 		var oldPlaceholder = null;
-		recognition.continuous = true;
+		recognition.continuous = false;
 		recognition.interimResults = true;
 
-		function restartTimer() {
-// console.log('resetTimer');
-			timeout = setTimeout(function() {
-				recognition.stop();
-			}, patience * 1000);
-		}
-
 		recognition.onstart = function() {
-// console.log('onstart');
-			oldPlaceholder = inputEl.placeholder;
-			inputEl.placeholder = talkMsg;
-			recognizing = true;
-			micBtn.classList.add('listening');
-			restartTimer();
 		};
 
 		recognition.onend = function() {
-// console.log('onend');
-			recognizing = false;
-			clearTimeout(timeout);
-			micBtn.classList.remove('listening');
-			if (oldPlaceholder !== null) inputEl.placeholder = oldPlaceholder;
+			if(recognizing)
+				recognition.start();
 		};
 
 		recognition.onresult = function(event) {
-// console.log('onresult');
-			clearTimeout(timeout);
 			for (var i = event.resultIndex; i < event.results.length; ++i) {
 				if (event.results[i].isFinal) {
 					finalTranscript += event.results[i][0].transcript;
 				}
 			}
-			finalTranscript = capitalize(finalTranscript);
+			finalTranscript = finalTranscript.trim() + ' ';
 			inputEl.value = finalTranscript;
-			restartTimer();
 		};
 
 		micBtn.addEventListener('click', function(event) {
 			event.preventDefault();
 			if (recognizing) {
+				micBtn.classList.remove('listening');
+				if (oldPlaceholder !== null) inputEl.placeholder = oldPlaceholder;
+				recognizing = false;
 				recognition.stop();
-				return;
 			}
-			inputEl.value = finalTranscript = '';
-			recognition.start();
+			else {
+				recognition.start();
+				inputEl.value = finalTranscript = '';
+				micBtn.classList.add('listening');
+				oldPlaceholder = inputEl.placeholder;
+				inputEl.placeholder = 'Start talking...';
+				recognizing = true;
+			}
 		}, false);
 	});
 
@@ -139,10 +134,13 @@
 		if(data && data.query && data.query.results && data.query.results.photo) {
 			var photos = data.query.results.photo;
 			var result = photos[Math.floor(Math.random()*photos.length)]; // random item
-			var $template = $('.imageTemplate.hidden').clone().removeClass('hidden');
+			var $template = $('#imageTemplate').clone().removeAttr('id').removeClass('hidden').hide();
 			$template.find('.title').text(word/*.toUpperCase() + ':' + result.title*/);
 			$template.find('.img').attr('src', buildFlickrImageUrl(result));
 			$('body').prepend($template);
+			$template.find('.img').load(function(){
+				$template.show(750);				
+			});
 		}
 		else {
 			// console.log('No image search results for "' + word + '"');

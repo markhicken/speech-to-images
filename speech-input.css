@@ -6,6 +6,12 @@ body {
 .hidden {
 	display:none !important;
 }
+#loading {
+	position: fixed;
+	top: 0.8rem;
+	right: 4rem;
+	z-index: 100;
+}
 .imageTemplate {
 	display:inline-block;
 	margin:1rem;
@@ -25,9 +31,17 @@ body {
 	width:100%;
 }
 
+button:focus {
+	border:none;
+	outline:none;
+}
 .listening {
-	background-color:red;
-	border-radius: 100%;
+	display: block;
+  background-color: red !important;
+  border-radius: 100%;
+}
+.listening .si-mic:before {
+	background-color: red;
 }
 
 .relative-pos {
