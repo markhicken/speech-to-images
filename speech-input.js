@@ -7,6 +7,9 @@
 
 	var config = {
 		longestBlurb: 3, // seconds
+		maxLength: 150,
+		maxAjaxRequests: 8,
+		maxImageRequests: 8,
 		flickr: {
 			apiUrlYql: 'https://query.yahooapis.com/v1/public/yql',
 			apiUrl: 'http://www.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=7bab52281fa5a9a3d4be9857f0d0779a',
@@ -15,6 +18,7 @@
 		}
 	}
 
+	var pendingImageRequests = 0;
 	var pendingAjaxRequests = 0;
 	$(document).ajaxStart(function() {
 		pendingAjaxRequests++;
@@ -102,7 +106,16 @@
 	});
 
 
-
+	function handleTextFieldLength() {
+		// var input = $('.si-input');
+		// $(input).val($(input).val());
+		// var strLength = input.val().length * 2;
+		// input.focus();
+		// input[0].setSelectionRange(strLength, strLength);
+		// input[0].scrollTop = 999999;
+		// reset it
+		// if(strLength >= config.maxLength) { input.val(''); }
+	}
 
 	function lookupWords(words) {
 		if(words && words.length) {
@@ -117,7 +130,9 @@
 						success: function(data){
 							if(data){
 								data.forEach(function(word){
-									if(word.type=='noun') {
+									if(word.type=='noun'
+										&& pendingAjaxRequests < config.maxAjaxRequests
+										&& pendingImageRequests < config.maxImageRequests) {
 										// console.log('searching for images for: ' + word.word);
 										doImageSearch(word.word);
 									}
@@ -159,7 +174,10 @@
 			$template.find('.title').text(word/*.toUpperCase() + ':' + result.title*/);
 			$template.find('.img').attr('src', buildFlickrImageUrl(result));
 			$('body').prepend($template);
+
+			pendingImageRequests++;
 			$template.find('.img').load(function(){
+				pendingImageRequests--;
 				$template.show(750);
 			});
 		}
@@ -179,7 +197,7 @@
 
 	function cleanUpText(text) {
 		//add more words separated by | here
-		var commonWords = /\babout\b|\bgoing\b|\bknow\b|\bwill\b|\bup\b|\ball\b|\bmy\b|\bmake\b|\bor\b|\bas\b|\blike\b|\bwhat\b|\bgo\b|\bby\b|\bfrom\b|\bnot\b|\bis\b|\bisn't\b|\bhis\b|\bhers\b|\bours\b|\bat\b|\bthat\b|\bthis\b|\bsaid\b|\bsay\b|\bon\b|\bdo\b|\bwe\b|\bshe\b|\bhe\b|\bthey\b|\btheir\b|\bhave\b|\bto\b|\bin\b|\bbe\b|\bthere\b|\bbe\b|\bto\b|\bif\b|\bI\b|\byou\b|\ba\b|\bsome\b|\band\b|\bor\b|\bfor\b|\bthe\b|\bbut\b|\betc\b|\bit\b|\bthat\b/gi;
+		var commonWords = /\bman\b|\bwoman\b|\babout\b|\bgoing\b|\bknow\b|\bwill\b|\bup\b|\ball\b|\bmy\b|\bmake\b|\bor\b|\bas\b|\blike\b|\bwhat\b|\bgo\b|\bby\b|\bfrom\b|\bnot\b|\bis\b|\bisn't\b|\bhis\b|\bhers\b|\bours\b|\bat\b|\bthat\b|\bthis\b|\bsaid\b|\bsay\b|\bon\b|\bdo\b|\bwe\b|\bshe\b|\bhe\b|\bthey\b|\btheir\b|\bhave\b|\bto\b|\bin\b|\bbe\b|\bthere\b|\bbe\b|\bto\b|\bif\b|\bI\b|\byou\b|\ba\b|\bsome\b|\band\b|\bor\b|\bfor\b|\bthe\b|\bbut\b|\betc\b|\bit\b|\bthat\b/gi;
 		//remove the common words
 		text=text.replace(commonWords, '');
 		//remove numbers
@@ -189,13 +207,26 @@
 		return text;
 	}
 
+	var userInteracting = false;
+	var interactionTimeout = -1;
+	$(document).bind('keyup click', function(){
+		userInteracting = true;
+		clearTimeout(interactionTimeout);
+		interactionTimeout = setTimeout(function(){
+			userInteracting = false;
+		}, 1200);
+	});
+
 	var lastInputValue = '';
 	function checkForInput() {
-		var inputVal = $('.si-input').val();
-		if(inputVal.trim() != lastInputValue.trim()) {
-			var toLookup = inputVal.substring(lastInputValue.length).trim();
-			lookupWords(cleanUpText(toLookup));
-			lastInputValue = inputVal;
+		if(!userInteracting) {
+			var inputVal = $('.si-input').val();
+			if(inputVal.trim() != lastInputValue.trim()) {
+				var toLookup = inputVal.substring(lastInputValue.length).trim();
+				lookupWords(cleanUpText(toLookup));
+				lastInputValue = inputVal;
+			}
+			handleTextFieldLength();
 		}
 	}
 

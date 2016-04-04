@@ -29,6 +29,7 @@ body {
 	top:0;
 	left:0;
 	width:100%;
+	border:1px solid #bbb;
 }
 
 button {
@@ -54,7 +55,12 @@ button:focus {
 	font-size:1.4rem;
 	padding: 1rem;
 	margin: 0;
-	width:100%;
+	width: calc(100% - 7rem);
+	border:none;
+}
+.si-wrapper input:focus {
+	border:none;
+	outline:none;
 }
 
 .si-wrapper button {
