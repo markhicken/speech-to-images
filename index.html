@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Speech input</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" href="speech-input.css">
+	<script src="bower_components/jquery/dist/jquery.js" integrity="sha256-4/zUCqiq0kqxhZIyp4G0Gk+AOtCJsY1TA00k5ClsZYE=" crossorigin="anonymous"></script>
+<body>
+	<div class="si-wrapper">
+		<div class="relative-pos">
+			<input type="text" class="si-input" placeholder="What's up?" />
+			<button class="si-btn">
+				speech input
+				<span class="si-mic"></span>
+				<span class="si-holder"></span>
+			</button>
+		</div>
+
+		<div class="imageTemplate hidden">
+    	<div class="title"></div>
+			<img class="img" />
+		</div>
+	</div>
+
+	<script src="speech-input.js"></script>
+</body>
+</html>
